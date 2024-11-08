@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  username       String   
+  email          String   @unique
+  hashedPassword String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  favoriteIds    String[] @db.ObjectId
+  recipes        Recipe[]  @relation("UserRecipes") 
+  comments     Comment[] @relation("UserComments") 
+}
+
+model Recipe {
+  id             String         @id @default(auto()) @map("_id") @db.ObjectId
+  title          String
+  oneline        String
+  description    String
+  steps          String[]      
+  ingredients    Ingredient[]   @relation("RecipeIngredients")
+  extraInfo      String
+  servingSize    Int
+  expectedTime   String
+  category       String
+  imageUrl       String        
+  likes          String[]       @db.ObjectId 
+  saved          String[]       @db.ObjectId 
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  userId         String         @db.ObjectId  
+  user           User           @relation("UserRecipes", fields: [userId], references: [id]) 
+  comments       Comment[]      @relation("RecipeComments") 
+}
+
+model Ingredient {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  amount       String
+  recipe       Recipe    @relation("RecipeIngredients", fields: [recipeId], references: [id])
+  recipeId     String    @db.ObjectId
+}
+model Comment {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  content    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  recipeId   String   @db.ObjectId
+  recipe     Recipe   @relation("RecipeComments", fields: [recipeId], references: [id])
+    userId       String    @db.ObjectId  
+  user         User      @relation("UserComments", fields: [userId], references: [id]) 
+}
